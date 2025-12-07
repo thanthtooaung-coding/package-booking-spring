@@ -26,7 +26,7 @@ public class Package {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "country_id")
-    private County county;
+    private Country country;
 
     @Column(name = "expired_date")
     private LocalDate expiredDate;

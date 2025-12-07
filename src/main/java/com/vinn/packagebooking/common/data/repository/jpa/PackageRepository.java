@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface PackageRepository extends JpaRepository<Package, Long> {
     Optional<Package> findByName(String name);
-    List<Package> findByCountyId(Long countyId);
+    List<Package> findByCountryId(Long countryId);
     boolean existsByName(String name);
 }

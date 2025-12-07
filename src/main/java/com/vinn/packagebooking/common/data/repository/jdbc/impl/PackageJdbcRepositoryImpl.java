@@ -1,6 +1,6 @@
 package com.vinn.packagebooking.common.data.repository.jdbc.impl;
 
-import com.vinn.packagebooking.common.data.model.County;
+import com.vinn.packagebooking.common.data.model.Country;
 import com.vinn.packagebooking.common.data.model.Package;
 import com.vinn.packagebooking.common.data.repository.jdbc.PackageJdbcRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,15 +43,15 @@ public class PackageJdbcRepositoryImpl implements PackageJdbcRepository {
             BigDecimal price = rs.getBigDecimal("p_price");
             packageEntity.setPrice(price);
 
-            // Map County
-            Long countyId = rs.getLong("c_id");
-            if (!rs.wasNull() && countyId != null) {
-                County county = new County();
-                county.setId(countyId);
-                county.setName(rs.getString("c_name"));
-                county.setShortName(rs.getString("c_short_name"));
-                county.setCode(rs.getString("c_code"));
-                packageEntity.setCounty(county);
+            // Map Country
+            Long countryId = rs.getLong("c_id");
+            if (!rs.wasNull() && countryId != null) {
+                Country country = new Country();
+                country.setId(countryId);
+                country.setName(rs.getString("c_name"));
+                country.setShortName(rs.getString("c_short_name"));
+                country.setCode(rs.getString("c_code"));
+                packageEntity.setCountry(country);
             }
 
             return packageEntity;
@@ -65,7 +65,7 @@ public class PackageJdbcRepositoryImpl implements PackageJdbcRepository {
                 "p.expired_date AS p_expired_date, p.description AS p_description, p.price AS p_price, " +
                 "c.id AS c_id, c.name AS c_name, c.short_name AS c_short_name, c.code AS c_code " +
                 "FROM packages p " +
-                "LEFT JOIN counties c ON p.country_id = c.id";
+                "LEFT JOIN countries c ON p.country_id = c.id";
         return jdbcTemplate.query(sql, PACKAGE_ROW_MAPPER);
     }
 }
