@@ -49,8 +49,54 @@ jobs:
 
       - name: Copy JAR to GCP instance
         run: |
-          gcloud compute scp ${{ steps.find-jar.outputs.JAR_FILE }} ${{ env.INSTANCE_NAME }}:~/ \
+          echo "Copying ${{ steps.find-jar.outputs.JAR_FILE }} to GCP instance..."
+          echo "JAR file path: ${{ steps.find-jar.outputs.JAR_FILE }}"
+          echo "JAR file name: ${{ steps.find-jar.outputs.JAR_NAME }}"
+          
+          if [ ! -f "${{ steps.find-jar.outputs.JAR_FILE }}" ]; then
+            echo "Error: JAR file not found at ${{ steps.find-jar.outputs.JAR_FILE }}"
+            exit 1
+          fi
+          
+          gcloud compute scp "${{ steps.find-jar.outputs.JAR_FILE }}" ${{ env.INSTANCE_NAME }}:~/ \
             --zone=${{ env.ZONE }} \
-            --project=${{ env.PROJECT_ID }}
-          echo "Deployed ${{ steps.find-jar.outputs.JAR_NAME }} to GCP instance"
+            --project=${{ env.PROJECT_ID }} \
+            --scp-flag="-v" || {
+            echo "Error: Failed to copy JAR file"
+            exit 1
+          }
+          
+          echo "Successfully deployed ${{ steps.find-jar.outputs.JAR_NAME }} to GCP instance"
+
+      - name: Verify JAR file on GCP instance
+        run: |
+          gcloud compute ssh ${{ env.INSTANCE_NAME }} \
+            --zone=${{ env.ZONE }} \
+            --project=${{ env.PROJECT_ID }} \
+            --command="
+              echo '=== Verification Step ==='
+              echo 'Current user: $(whoami)'
+              echo 'Home directory: $HOME'
+              echo ''
+              echo 'Checking home directory for JAR file...'
+              ls -lh ~/ | grep -i jar || echo 'No JAR files found in home directory'
+              echo ''
+              echo 'Full home directory listing:'
+              ls -lah ~/
+              echo ''
+              echo 'Checking if specific JAR file exists:'
+              JAR_NAME='${{ steps.find-jar.outputs.JAR_NAME }}'
+              if [ -f ~/\$JAR_NAME ]; then
+                echo '✓ JAR file found: ~/\$JAR_NAME'
+                ls -lh ~/\$JAR_NAME
+                echo ''
+                echo 'File size and details:'
+                stat ~/\$JAR_NAME
+              else
+                echo '✗ JAR file NOT found: ~/\$JAR_NAME'
+                echo ''
+                echo 'Searching for any JAR files in home directory:'
+                find ~/ -maxdepth 1 -name '*.jar' -type f 2>/dev/null || echo 'No JAR files found'
+              fi
+            "
 
